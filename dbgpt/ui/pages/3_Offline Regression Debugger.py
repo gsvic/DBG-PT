@@ -1,15 +1,9 @@
-import time
-import json
-
-import pandas as pd
 import streamlit as st
 
 from dbgpt.utils import get_dbms_driver
-from dbgpt.ui.test import prompt, prompt_single_plan
-from dbgpt.ui.common import QueryMetadataHandler
+from dbgpt.ui.prompts import prompt
+from dbgpt.ui.display import split_commands, render_analysis_results
 
-
-handler = QueryMetadataHandler()
 
 st.markdown("# Regression Debugger")
 st.markdown("### Analyze and improve query regressions using Large Language Models (LLMs). ")
@@ -20,6 +14,7 @@ with st.sidebar:
 
     st.subheader('Database Systems')
     selected_dbms = st.sidebar.selectbox('Choose a Database System', ['Postgres'], key='selected_dbms')
+    db_name = st.sidebar.text_input('Database Name', value='tpch', key='db_name')
 
 st.markdown(
         """
@@ -68,40 +63,9 @@ if analyze_button:
             reasoning = None
             commands = list()
 
-    system_commands = list()
-    index_commands = list()
+    system_commands, index_commands = split_commands(commands)
 
-    for cmd in commands:
-        if "CREATE INDEX" not in cmd.upper() and "statement_timeout" not in cmd:
-            system_commands.append(cmd)
-        else:
-            index_commands.append(cmd)
-
-    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
-
-    st.markdown("""
-            <style>
-                /* Target the CSS of the column containers directly */
-                .stBlock > div:first-child > div {
-                    border-right: 2px solid #000; /* Add a right border to all columns except the last one */
-                }
-                /* You might need to adjust the selector specificity depending on Streamlit's current implementation */
-            </style>
-            """, unsafe_allow_html=True)
-
-    with col1:
-        # Underlined markdown
-        st.markdown("#### <u>Plan Differences</u>", unsafe_allow_html=True)
-        st.write(plan_diff)
-    with col2:
-        st.markdown("#### <u>Reasoning</u>", unsafe_allow_html=True)
-        st.write(reasoning)
-    with col3:
-        st.markdown("#### <u>Recommended Configuration</u>", unsafe_allow_html=True)
-        st.write(system_commands)
-    with col4:
-        st.markdown("#### <u>Recommended Indexes</u>", unsafe_allow_html=True)
-        st.write(index_commands)
+    render_analysis_results(plan_diff, reasoning, system_commands, index_commands)
 
     st.session_state["analyzed"] = True
     st.session_state["system_commands"] = system_commands
@@ -110,18 +74,12 @@ if analyze_button:
 if st.session_state.get("analyzed"):
     indexes = st.session_state["index_commands"]
 
-    commands = '\n'.join(st.session_state.get("system_commands"))
-    query_text = st.session_state.get("query_text")
-    query_id = st.session_state.get("query_id")
-
     # Check if there are recommended index commands; If so, create the corresponding button
     if indexes:
         create_indexes = st.button("Create Indexes", help="Create the suggested indexes")
 
         if create_indexes:
-            print("Creating indexes")
-            db = st.session_state.get("db")
-            cursor = get_dbms_driver(selected_dbms.upper(), db=db).cursor
+            cursor = get_dbms_driver(selected_dbms.upper(), db=db_name).cursor
 
             with st.status("Creating indexes...") as status:
                 for c in indexes:

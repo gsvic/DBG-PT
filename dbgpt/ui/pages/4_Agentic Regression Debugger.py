@@ -33,7 +33,6 @@ if selected_query:
     # Check last execution instance
     last_execution = executed_queries[selected_query][-1]
 
-    failed = False
     if last_execution.failed:
         failed = True
 

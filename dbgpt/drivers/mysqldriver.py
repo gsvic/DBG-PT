@@ -110,7 +110,8 @@ class MySQLDriver:
         }
 
         if results_path:
-            json.dump(out, open(results_path, "w+"), indent=2)
+            with open(results_path, "w+") as f:
+                json.dump(out, f, indent=2)
 
         cursor.close()
         return out
@@ -147,7 +148,8 @@ class MySQLDriver:
         }
 
         if dump_path:
-            json.dump(out, open(dump_path, "w+"), indent=2)
+            with open(dump_path, "w+") as f:
+                json.dump(out, f, indent=2)
 
         return out
 

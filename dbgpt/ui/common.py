@@ -8,7 +8,6 @@ from collections import defaultdict
 
 
 class QueryMetadataHandler:
-    handler = None
     class ExecutedQueryMeta:
         def __init__(self, query_id, query_name, exec_time, ts, query_text, plan, tag, settings, meta):
             self.query_id = query_id
@@ -62,13 +61,6 @@ class QueryMetadataHandler:
         if rows[0][0] == 0:
             self.init_tpch_queries()
             self.init_job_queries()
-
-    @staticmethod
-    def get_handler():
-        if not QueryMetadataHandler.handler:
-            QueryMetadataHandler.handler = QueryMetadataHandler(reset=False)
-
-        return QueryMetadataHandler.handler
 
     def insert_query(self, query_name, query_text, tag):
         self.cursor.execute('''

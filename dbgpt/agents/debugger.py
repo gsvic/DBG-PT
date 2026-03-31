@@ -3,8 +3,12 @@ from typing import Optional, Any
 from langchain_core.callbacks import CallbackManagerForToolRun, AsyncCallbackManagerForToolRun
 from langchain_core.tools import BaseTool
 from langchain_openai import ChatOpenAI
+from pydantic import PrivateAttr
 
 from langgraph.prebuilt import create_react_agent
+
+from dbgpt.utils import get_llm
+
 
 class PostgresDBExplorer(BaseTool):
     """Tool that allows you to execute queries against a Postgres database."""
@@ -13,9 +17,6 @@ class PostgresDBExplorer(BaseTool):
     description: str = (
         "This tool executes a query in Postgres. It returns back the execution plan in the EXPLAIN ANALYZE format."
     )
-
-    # Declare private attributes
-    from pydantic import PrivateAttr
 
     _cursor: Any = PrivateAttr()
     _query: str = PrivateAttr()
@@ -59,7 +60,7 @@ class DebuggingAgent:
         tools = [PostgresDBExplorer(query=query, cursor=cursor)]
 
         # Choose the LLM that will drive the agent
-        llm = ChatOpenAI(model="gpt-4-turbo-preview")
+        llm = ChatOpenAI(model=get_llm())
         prompt = "You are a Database Administrator and a helpful assistant. You can execute queries against a Postgres database and search the web for information."
 
         self.agent_executor = create_react_agent(llm, tools, prompt=prompt)

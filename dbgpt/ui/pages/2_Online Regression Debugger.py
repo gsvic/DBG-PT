@@ -5,8 +5,9 @@ import pandas as pd
 import streamlit as st
 
 from dbgpt.utils import get_dbms_driver
-from dbgpt.ui.test import prompt, prompt_single_plan
+from dbgpt.ui.prompts import prompt, prompt_single_plan
 from dbgpt.ui.common import QueryMetadataHandler
+from dbgpt.ui.display import split_commands, render_analysis_results
 
 
 handler = QueryMetadataHandler()
@@ -36,7 +37,6 @@ if selected_query:
     # Check last execution instance
     last_execution = executed_queries[selected_query][-1]
 
-    failed = False
     if last_execution.failed:
         failed = True
 
@@ -104,40 +104,9 @@ if analyze_button:
         reasoning = data['reasoning']
         commands = data['commands']
 
-    system_commands = list()
-    index_commands = list()
+    system_commands, index_commands = split_commands(commands)
 
-    for cmd in commands:
-        if "CREATE INDEX" not in cmd.upper() and "statement_timeout" not in cmd:
-            system_commands.append(cmd)
-        else:
-            index_commands.append(cmd)
-
-    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
-
-    st.markdown("""
-            <style>
-                /* Target the CSS of the column containers directly */
-                .stBlock > div:first-child > div {
-                    border-right: 2px solid #000; /* Add a right border to all columns except the last one */
-                }
-                /* You might need to adjust the selector specificity depending on Streamlit's current implementation */
-            </style>
-            """, unsafe_allow_html=True)
-
-    with col1:
-        # Underlined markdown
-        st.markdown("#### <u>Plan Differences</u>", unsafe_allow_html=True)
-        st.write(plan_diff)
-    with col2:
-        st.markdown("#### <u>Reasoning</u>", unsafe_allow_html=True)
-        st.write(reasoning)
-    with col3:
-        st.markdown("#### <u>Recommended Configuration</u>", unsafe_allow_html=True)
-        st.write(system_commands)
-    with col4:
-        st.markdown("#### <u>Recommended Indexes</u>", unsafe_allow_html=True)
-        st.write(index_commands)
+    render_analysis_results(plan_diff, reasoning, system_commands, index_commands)
 
     st.session_state["analyzed"] = True
     st.session_state["system_commands"] = system_commands

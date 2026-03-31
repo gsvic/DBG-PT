@@ -140,7 +140,7 @@ class PostgresDriver(Driver):
         if timeout:
             try:
                 cursor.execute(f"RESET statement_timeout")
-            except:
+            except Exception:
                 pass
 
         out = {
@@ -150,7 +150,8 @@ class PostgresDriver(Driver):
         }
 
         if results_path:
-            json.dump(out, open(results_path, "w+"), indent=2)
+            with open(results_path, "w+") as f:
+                json.dump(out, f, indent=2)
 
         cursor.close()
 
@@ -191,7 +192,8 @@ class PostgresDriver(Driver):
         }
 
         if dump_path:
-            json.dump(out, open(dump_path, "w+"), indent=2)
+            with open(dump_path, "w+") as f:
+                json.dump(out, f, indent=2)
 
         return out
 
