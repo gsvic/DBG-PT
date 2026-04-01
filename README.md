@@ -91,3 +91,17 @@ dbgpt/
 resources/
 └── config.ini               # Database credentials and LLM settings
 ```
+
+## Citation
+```bibtex
+@article{giannakouris2024dbg,
+  title={Dbg-pt: A large language model assisted query performance regression debugger},
+  author={Giannakouris, Victor and Trummer, Immanuel},
+  journal={Proceedings of the VLDB Endowment},
+  volume={17},
+  number={12},
+  pages={4337--4340},
+  year={2024},
+  publisher={VLDB Endowment}
+}
+```
